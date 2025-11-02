@@ -7,6 +7,8 @@ require (
 	github.com/labstack/echo/v4 v4.13.4
 )
 
+replace eve.evalgo.org => /home/opunix/eve
+
 require (
 	cloud.google.com/go/auth v0.15.0 // indirect
 	cloud.google.com/go/auth/oauth2adapt v0.2.8 // indirect
