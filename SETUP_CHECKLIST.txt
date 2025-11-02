@@ -1,0 +1,136 @@
+INFISICAL SETUP CHECKLIST FOR IQS WORKFLOWS
+===========================================
+
+STEP 1: Create Infisical Projects
+----------------------------------
+In Infisical Web UI (https://app.infisical.com):
+
+[ ] Create project: iqs-s3-secrets
+    [ ] Add environment: dev
+    [ ] Add environment: prod
+    [ ] Add secret: HETZNER_S3_URL
+    [ ] Add secret: HETZNER_S3_ACCESS_KEY
+    [ ] Add secret: HETZNER_S3_SECRET_KEY
+
+[ ] Create project: iqs-poolparty-secrets
+    [ ] Add environment: dev
+    [ ] Add environment: prod
+    [ ] Add secret: POOLPARTY_SPARQL_URL
+    [ ] Add secret: POOLPARTY_SPARQL_USERNAME
+    [ ] Add secret: POOLPARTY_SPARQL_PASSWORD
+    [ ] Add secret: POOLPARTY_PROJECT_ID
+
+[ ] Create project: iqs-basex-secrets
+    [ ] Add environment: dev
+    [ ] Add environment: prod
+    [ ] Add secret: BASEX_URL
+    [ ] Add secret: BASEX_USERNAME
+    [ ] Add secret: BASEX_PASSWORD
+    [ ] Add secret: BASEX_DATABASE
+
+STEP 2: Create Machine Identity
+--------------------------------
+In Infisical:
+
+[ ] Navigate to Settings → Access Control → Machine Identities
+[ ] Create new Machine Identity: iqs-workflow-executor
+[ ] Select authentication method: Universal Auth
+[ ] Copy Client ID: ___________________________________
+[ ] Copy Client Secret: _______________________________
+[ ] Grant access to all 3 projects (iqs-s3-secrets, iqs-poolparty-secrets, iqs-basex-secrets)
+
+STEP 3: Configure When Scheduler Host
+--------------------------------------
+On server where when/fetcher runs:
+
+[ ] Set environment variable:
+    export INFISICAL_CLIENT_ID="<client-id-from-step-2>"
+
+[ ] Set environment variable:
+    export INFISICAL_CLIENT_SECRET="<client-secret-from-step-2>"
+
+[ ] (Optional) Set API key for production:
+    export INFISICAL_SERVICE_API_KEY="<your-random-api-key>"
+
+[ ] Add to shell profile for persistence:
+    echo 'export INFISICAL_CLIENT_ID="..."' >> ~/.bashrc
+    echo 'export INFISICAL_CLIENT_SECRET="..."' >> ~/.bashrc
+
+STEP 4: Start Services
+----------------------
+[ ] Start infisicalservice:
+    cd /home/opunix/infisicalservice
+    PORT=8093 ./infisicalservice &
+
+[ ] Verify infisicalservice is running:
+    curl http://localhost:8093/health
+
+STEP 5: Test Secret Retrieval
+------------------------------
+[ ] Test S3 secrets retrieval (dev):
+    curl -X POST http://localhost:8093/v1/api/semantic/action \
+      -H "Content-Type: application/json" \
+      -d '{
+        "@type": "RetrieveAction",
+        "target": {
+          "@type": "Project",
+          "identifier": "iqs-s3-secrets",
+          "environment": "dev",
+          "url": "https://app.infisical.com"
+        }
+      }'
+
+[ ] Test S3 secrets retrieval (prod):
+    (same as above, but environment: "prod")
+
+[ ] Test PoolParty secrets retrieval:
+    (change identifier to "iqs-poolparty-secrets")
+
+[ ] Test BaseX secrets retrieval:
+    (change identifier to "iqs-basex-secrets")
+
+STEP 6: Test Workflow Execution
+--------------------------------
+[ ] Test simple workflow with secret injection:
+    cd /home/opunix/fetcher
+    ./fetcher semantic /tmp/test-simple-workflow.json
+
+[ ] Verify secrets are masked in logs (only first/last 2 chars shown)
+
+STEP 7: Production Deployment
+------------------------------
+[ ] Document actual Infisical project IDs used
+[ ] Configure systemd service for infisicalservice (optional)
+[ ] Set up log rotation for infisicalservice
+[ ] Update IQS workflows to use RetrieveAction instead of hardcoded credentials
+[ ] Test complete IQS workflow end-to-end
+
+===========================================
+COMPLETION CRITERIA
+===========================================
+✓ All 3 Infisical projects created with dev/prod environments
+✓ All 11 secrets configured in Infisical
+✓ Machine identity created with proper access
+✓ Environment variables set on scheduler host
+✓ infisicalservice running and healthy
+✓ Secret retrieval tested successfully
+✓ Workflow execution tested with secret interpolation
+
+===========================================
+QUICK REFERENCE
+===========================================
+Project IDs to use in workflows:
+- iqs-s3-secrets (for S3 uploads)
+- iqs-poolparty-secrets (for SPARQL queries)
+- iqs-basex-secrets (for XQuery transformations)
+
+Service endpoints:
+- infisicalservice: http://localhost:8093
+- sparqlservice: http://localhost:8091
+- basexservice: http://localhost:8090
+- s3service: http://localhost:8092
+
+Documentation files:
+- /home/opunix/infisicalservice/INFISICAL_PROJECT_SETUP.md (detailed guide)
+- /home/opunix/infisicalservice/infisical-secrets-template.env (secret reference)
+- /home/opunix/infisicalservice/README.md (service documentation)
