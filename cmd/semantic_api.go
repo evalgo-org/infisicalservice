@@ -55,27 +55,11 @@ func handleRetrieveAction(c echo.Context, rawAction map[string]interface{}) erro
 	// Validate required fields
 	if action.Target == nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "target (InfisicalProject) is required",
+			"error": "target is required (EntryPoint with additionalProperty or InfisicalProject for backward compat)",
 		})
 	}
 
-	if action.Target.Identifier == "" {
-		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "target.identifier (project_id) is required",
-		})
-	}
-
-	if action.Target.Environment == "" {
-		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "target.environment is required",
-		})
-	}
-
-	if action.Target.Url == "" {
-		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "target.url (Infisical instance URL) is required",
-		})
-	}
+	// Validation is done inside RetrieveSecrets which supports both formats
 
 	// Get Infisical credentials from environment
 	clientID := os.Getenv("INFISICAL_CLIENT_ID")
@@ -92,8 +76,7 @@ func handleRetrieveAction(c echo.Context, rawAction map[string]interface{}) erro
 	action.ActionStatus = "ActiveActionStatus"
 
 	// Execute secret retrieval
-	log.Printf("Retrieving secrets from Infisical project=%s environment=%s",
-		action.Target.Identifier, action.Target.Environment)
+	log.Printf("Retrieving secrets from Infisical")
 
 	err := action.RetrieveSecrets(clientID, clientSecret)
 
