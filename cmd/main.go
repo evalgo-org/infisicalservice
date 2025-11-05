@@ -1,18 +1,22 @@
 package main
 
 import (
-	"log"
 	"os"
 	"os/signal"
 	"strconv"
 	"syscall"
 
+	"eve.evalgo.org/common"
+	evehttp "eve.evalgo.org/http"
 	"eve.evalgo.org/registry"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
 
 func main() {
+	// Initialize logger
+	logger := common.ServiceLogger("infisicalservice", "1.0.0")
+
 	// Create Echo instance
 	e := echo.New()
 
@@ -21,27 +25,13 @@ func main() {
 	e.Use(middleware.Recover())
 	e.Use(middleware.CORS())
 
-	// Health check endpoint
-	e.GET("/health", func(c echo.Context) error {
-		return c.JSON(200, map[string]string{
-			"service": "infisicalservice",
-			"status":  "healthy",
-		})
-	})
+	// EVE health check
+	e.GET("/health", evehttp.HealthCheckHandler("infisicalservice", "1.0.0"))
 
-	// Check if API key is required
+	// EVE API Key middleware
 	apiKey := os.Getenv("INFISICAL_SERVICE_API_KEY")
-	if apiKey != "" {
-		log.Println("API key authentication enabled")
-		// Apply API key middleware only to the semantic action endpoint
-		apiKeyMiddleware := middleware.KeyAuth(func(key string, c echo.Context) (bool, error) {
-			return key == apiKey, nil
-		})
-		e.POST("/v1/api/semantic/action", handleSemanticAction, apiKeyMiddleware)
-	} else {
-		log.Println("Running in development mode (no API key required)")
-		e.POST("/v1/api/semantic/action", handleSemanticAction)
-	}
+	apiKeyMiddleware := evehttp.APIKeyMiddleware(apiKey)
+	e.POST("/v1/api/semantic/action", handleSemanticAction, apiKeyMiddleware)
 
 	// Get port from environment or default to 8093
 	port := os.Getenv("PORT")
@@ -60,19 +50,19 @@ func main() {
 		Binary:       "infisicalservice",
 		Capabilities: []string{"secrets-management", "infisical", "semantic-actions"},
 	}); err != nil {
-		log.Printf("Failed to register with registry: %v", err)
+		logger.WithError(err).Error("Failed to register with registry")
 	}
 
 	// Start server in goroutine
 	go func() {
-		log.Printf("Starting Infisical Semantic Service on port %s", port)
-		log.Println("Supports Infisical secrets management with Schema.org semantic types")
-		log.Println("Environment variables:")
-		log.Printf("  - INFISICAL_CLIENT_ID: %s", maskSecret(os.Getenv("INFISICAL_CLIENT_ID")))
-		log.Printf("  - INFISICAL_CLIENT_SECRET: %s", maskSecret(os.Getenv("INFISICAL_CLIENT_SECRET")))
+		logger.Infof("Starting Infisical Semantic Service on port %s", port)
+		logger.Info("Supports Infisical secrets management with Schema.org semantic types")
+		logger.Info("Environment variables:")
+		logger.Infof("  - INFISICAL_CLIENT_ID: %s", maskSecret(os.Getenv("INFISICAL_CLIENT_ID")))
+		logger.Infof("  - INFISICAL_CLIENT_SECRET: %s", maskSecret(os.Getenv("INFISICAL_CLIENT_SECRET")))
 
 		if err := e.Start(":" + port); err != nil {
-			log.Printf("Server error: %v", err)
+			logger.WithError(err).Error("Server error")
 		}
 	}()
 
@@ -81,19 +71,19 @@ func main() {
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 
-	log.Println("Shutting down server...")
+	logger.Info("Shutting down server...")
 
 	// Unregister from registry
 	if err := registry.AutoUnregister("infisicalservice"); err != nil {
-		log.Printf("Failed to unregister from registry: %v", err)
+		logger.WithError(err).Error("Failed to unregister from registry")
 	}
 
 	// Shutdown server
 	if err := e.Close(); err != nil {
-		log.Printf("Error during shutdown: %v", err)
+		logger.WithError(err).Error("Error during shutdown")
 	}
 
-	log.Println("Server stopped")
+	logger.Info("Server stopped")
 }
 
 // maskSecret masks a secret for logging
