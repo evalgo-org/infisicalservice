@@ -48,7 +48,7 @@ func main() {
 		Port:         portInt,
 		Directory:    "/home/opunix/infisicalservice",
 		Binary:       "infisicalservice",
-		Capabilities: []string{"secrets-management", "infisical", "semantic-actions"},
+		Capabilities: []string{"credential-management", "secrets-management", "infisical"},
 	}); err != nil {
 		logger.WithError(err).Error("Failed to register with registry")
 	}
