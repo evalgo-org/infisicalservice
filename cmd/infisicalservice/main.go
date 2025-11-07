@@ -37,7 +37,7 @@ func main() {
 		Description: "Secure secrets management using Infisical with semantic action support",
 		Version:     "v1",
 		Port:        8093,
-		Capabilities: []string{"credential-management", "secrets-management", "infisical"},
+		Capabilities: []string{"credential-management", "secrets-management", "infisical", "state-tracking"},
 		Endpoints: []evehttp.EndpointDoc{
 			{
 				Method:      "POST",
@@ -83,7 +83,7 @@ func main() {
 		Directory:    "/home/opunix/infisicalservice",
 		Binary:       "infisicalservice",
 		Version:      "v1",
-		Capabilities: []string{"credential-management", "secrets-management", "infisical"},
+		Capabilities: []string{"credential-management", "secrets-management", "infisical", "state-tracking"},
 		APIVersions: []registry.APIVersion{
 			{
 				Version:       "v1",
