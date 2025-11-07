@@ -32,11 +32,11 @@ func main() {
 
 	// Documentation endpoint
 	e.GET("/v1/api/docs", evehttp.DocumentationHandler(evehttp.ServiceDocConfig{
-		ServiceID:   "infisicalservice",
-		ServiceName: "Infisical Secrets Management Service",
-		Description: "Secure secrets management using Infisical with semantic action support",
-		Version:     "v1",
-		Port:        8093,
+		ServiceID:    "infisicalservice",
+		ServiceName:  "Infisical Secrets Management Service",
+		Description:  "Secure secrets management using Infisical with semantic action support",
+		Version:      "v1",
+		Port:         8093,
 		Capabilities: []string{"credential-management", "secrets-management", "infisical", "state-tracking"},
 		Endpoints: []evehttp.EndpointDoc{
 			{
