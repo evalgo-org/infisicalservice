@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"os/signal"
 	"strconv"
@@ -48,7 +49,19 @@ func main() {
 		Port:         portInt,
 		Directory:    "/home/opunix/infisicalservice",
 		Binary:       "infisicalservice",
+		Version:      "v1",
 		Capabilities: []string{"credential-management", "secrets-management", "infisical"},
+		APIVersions: []registry.APIVersion{
+			{
+				Version:       "v1",
+				URL:           fmt.Sprintf("http://localhost:%d/v1", portInt),
+				Documentation: fmt.Sprintf("http://localhost:%d/v1/api/docs", portInt),
+				IsDefault:     true,
+				Status:        "stable",
+				ReleaseDate:   "2024-01-01",
+				Capabilities:  []string{"credential-management", "secrets-management", "infisical"},
+			},
+		},
 	}); err != nil {
 		logger.WithError(err).Error("Failed to register with registry")
 	}
