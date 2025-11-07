@@ -42,7 +42,27 @@ func main() {
 			{
 				Method:      "POST",
 				Path:        "/v1/api/semantic/action",
-				Description: "Execute secrets management operations via semantic actions",
+				Description: "Execute secrets management operations via semantic actions (primary interface)",
+			},
+			{
+				Method:      "POST",
+				Path:        "/v1/api/secrets",
+				Description: "Create secret (REST convenience - converts to CreateAction)",
+			},
+			{
+				Method:      "GET",
+				Path:        "/v1/api/secrets/:key",
+				Description: "Retrieve secret (REST convenience - converts to SearchAction)",
+			},
+			{
+				Method:      "PUT",
+				Path:        "/v1/api/secrets/:key",
+				Description: "Update secret (REST convenience - converts to UpdateAction)",
+			},
+			{
+				Method:      "DELETE",
+				Path:        "/v1/api/secrets/:key",
+				Description: "Delete secret (REST convenience - converts to DeleteAction)",
 			},
 			{
 				Method:      "GET",
@@ -65,7 +85,12 @@ func main() {
 	// EVE API Key middleware
 	apiKey := os.Getenv("INFISICAL_SERVICE_API_KEY")
 	apiKeyMiddleware := evehttp.APIKeyMiddleware(apiKey)
-	e.POST("/v1/api/semantic/action", handleSemanticAction, apiKeyMiddleware)
+
+	// Semantic action endpoint (primary interface)
+	apiGroup.POST("/semantic/action", handleSemanticAction, apiKeyMiddleware)
+
+	// REST endpoints (convenience adapters that convert to semantic actions)
+	registerRESTEndpoints(apiGroup, apiKeyMiddleware)
 
 	// Get port from environment or default to 8093
 	port := os.Getenv("PORT")
