@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -29,15 +28,9 @@ func handleSemanticAction(c echo.Context) error {
 		})
 	}
 
-	// Route to appropriate handler based on @type
-	switch action.Type {
-	case "RetrieveAction":
-		return handleRetrieveAction(c, action)
-	default:
-		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": fmt.Sprintf("Unsupported action type: %s. Supported types: RetrieveAction", action.Type),
-		})
-	}
+	// Dispatch to registered handler using the ActionRegistry
+	// No switch statement needed - handlers are registered at startup
+	return semantic.Handle(c, action)
 }
 
 // handleRetrieveAction handles Infisical secret retrieval actions
