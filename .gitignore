@@ -6,7 +6,7 @@
 *.dylib
 
 # Go build artifacts
-infisicalservice
+/infisicalservice
 /cmd/infisicalservice/infisicalservice
 *.test
 *.out
