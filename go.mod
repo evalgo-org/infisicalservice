@@ -3,7 +3,7 @@ module infisicalservice
 go 1.25.3
 
 require (
-	eve.evalgo.org v0.0.42
+	eve.evalgo.org v0.0.44
 	github.com/infisical/go-sdk v0.5.100
 	github.com/labstack/echo/v4 v4.13.4
 )
@@ -103,4 +103,3 @@ require (
 	google.golang.org/grpc v1.75.1 // indirect
 	google.golang.org/protobuf v1.36.10 // indirect
 )
-

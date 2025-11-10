@@ -136,6 +136,29 @@ func main() {
 		Binary:       "infisicalservice",
 		Version:      "v1",
 		Capabilities: []string{"credential-management", "secrets-management", "infisical", "state-tracking"},
+		ActionCapabilities: []registry.ActionCapability{
+			{
+				ActionType:  "RetrieveAction",
+				Description: "Retrieves credentials from Infisical secrets manager",
+				ResultSchema: &semantic.ResultSchema{
+					Type: "PropertyValueList",
+					Properties: []semantic.PropertyValueSpec{
+						{
+							Type:        "PropertyValue",
+							Name:        "name",
+							ValueType:   "Text",
+							Description: "Secret key name",
+						},
+						{
+							Type:        "PropertyValue",
+							Name:        "value",
+							ValueType:   "Text",
+							Description: "Secret value",
+						},
+					},
+				},
+			},
+		},
 		APIVersions: []registry.APIVersion{
 			{
 				Version:       "v1",
