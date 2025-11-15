@@ -44,9 +44,15 @@ func handleRetrieveAction(c echo.Context, actionInterface interface{}) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid action type")
 	}
 	// Extract Infisical target configuration using helper
-	url, projectID, environment, secretPath, includeImports, err := semantic.GetInfisicalTargetFromAction(action)
+	_, projectID, environment, secretPath, includeImports, err := semantic.GetInfisicalTargetFromAction(action)
 	if err != nil {
 		return semantic.ReturnActionError(c, action, "Failed to extract Infisical target", err)
+	}
+
+	// Get Infisical server URL from environment
+	infisicalURL := os.Getenv("INFISICAL_API_URL")
+	if infisicalURL == "" {
+		infisicalURL = "https://app.infisical.com" // Default to Infisical Cloud
 	}
 
 	// Get Infisical credentials from environment
@@ -58,10 +64,10 @@ func handleRetrieveAction(c echo.Context, actionInterface interface{}) error {
 	}
 
 	// Execute secret retrieval using the extracted configuration
-	log.Printf("Retrieving secrets from Infisical (url=%s, project=%s, env=%s, path=%s, includeImports=%v)", url, projectID, environment, secretPath, includeImports)
+	log.Printf("Retrieving secrets from Infisical (url=%s, project=%s, env=%s, path=%s, includeImports=%v)", infisicalURL, projectID, environment, secretPath, includeImports)
 
 	// Use EVE's Infisical integration to fetch secrets
-	secrets, err := fetchSecretsFromInfisical(url, clientID, clientSecret, projectID, environment, secretPath, includeImports)
+	secrets, err := fetchSecretsFromInfisical(infisicalURL, clientID, clientSecret, projectID, environment, secretPath, includeImports)
 	if err != nil {
 		return semantic.ReturnActionError(c, action, "Failed to retrieve secrets from Infisical", err)
 	}
